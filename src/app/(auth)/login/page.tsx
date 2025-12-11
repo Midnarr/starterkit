@@ -1,11 +1,9 @@
 import { createClient } from "@/libs/supabase/server";
 import { redirect } from "next/navigation";
 
-// Definimos las props correctamente para Next.js 15
 export default async function LoginPage(props: {
   searchParams: Promise<{ message?: string }>;
 }) {
-  // 1. Esperamos a que lleguen los parámetros (await)
   const searchParams = await props.searchParams;
   const message = searchParams?.message;
 
@@ -15,7 +13,6 @@ export default async function LoginPage(props: {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    // 2. Esperamos al cliente de supabase (await)
     const supabase = await createClient();
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -27,7 +24,8 @@ export default async function LoginPage(props: {
       return redirect("/login?message=No pudimos iniciar sesión");
     }
 
-    return redirect("/");
+    // <--- CAMBIO AQUÍ: Antes era "/" ahora es "/dashboard"
+    return redirect("/dashboard"); 
   };
 
   // Lógica de Registro (Backend)
@@ -36,12 +34,15 @@ export default async function LoginPage(props: {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    // 2. Esperamos al cliente de supabase (await)
     const supabase = await createClient();
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // Esto es importante para que al confirmar el email vayan al dashboard
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`, 
+      },
     });
 
     if (error) {
@@ -51,7 +52,6 @@ export default async function LoginPage(props: {
     return redirect("/login?message=Revisa tu email para confirmar");
   };
 
-  // Diseño (Frontend)
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md space-y-8 bg-white p-10 shadow rounded-xl">
@@ -59,7 +59,6 @@ export default async function LoginPage(props: {
           Bienvenido
         </h2>
         
-        {/* Mostramos el mensaje si existe */}
         {message && (
           <div className="p-4 bg-red-100 text-red-700 rounded text-center">
             {message}
