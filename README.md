@@ -41,7 +41,7 @@ cd mvp-launcher-kit
 npm install
 ```
 
-4. Configure Environment Variables
+3. Configure Environment Variables
 Rename the .env.example file to .env.local and add your keys:
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -73,14 +73,13 @@ create policy "View own notes" on notes for select using ((select auth.uid()) = 
 create policy "Insert own notes" on notes for insert with check ((select auth.uid()) = user_id);
 ```
 5. Setup Stripe
-  1. Create a product in your Stripe Dashboard and copy the API ID (e.g., price_1Pxyz...).
-  2. Open src/app/api/checkout/route.ts and replace the placeholder ID in the price: "..." line with your real ID.
+  1-Create a product in your Stripe Dashboard and copy the API ID (e.g., price_1Pxyz...).
+  2-Open src/app/api/checkout/route.ts and replace the placeholder ID in the price: "..." line with your real ID.
 
 6. Run the server
 ```
 npm run dev
 ```
-
 Open http://localhost:3000 to see your app in action!
 
 📂 Project Structure
