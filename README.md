@@ -104,13 +104,3 @@ La forma más fácil de publicar tu app es con Vercel:
 Si encuentras un bug o tienes una idea para mejorar el kit, siéntete libre de abrir un Issue o un Pull Request.
 
 Creado con ❤️ por Midnarr
-
----
-
-### 🔥 Consejo Pro para vender más:
-Para que tu repositorio o producto sea irresistible, te recomiendo que hagas esto ahora mismo:
-
-1.  **Saca capturas de pantalla:** Toma una foto de la pantalla de Login, otra del Dashboard con las notas, y otra del mensaje de "Pago Exitoso".
-2.  **Súbelas al README:** Crea una carpeta llamada `public/screenshots` en tu proyecto, guarda las fotos ahí, y agrégalas al markdown así: `![Dashboard Screenshot](/screenshots/dashboard.png)`.
-
-¡Eso aumenta la confianza del comprador un 200%!
