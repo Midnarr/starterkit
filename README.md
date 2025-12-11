@@ -31,6 +31,7 @@ Este boilerplate no es solo código, es una arquitectura de negocio lista para u
 Sigue estos pasos para tener tu aplicación corriendo en local en menos de 5 minutos.
 
 ### 1. Clonar el repositorio
+```bash
 git clone [https://github.com/TU_USUARIO/mvp-launcher-kit.git](https://github.com/TU_USUARIO/mvp-launcher-kit.git)
 cd mvp-launcher-kit
 
