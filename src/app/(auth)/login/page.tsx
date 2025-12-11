@@ -1,19 +1,22 @@
 import { createClient } from "@/libs/supabase/server";
 import { redirect } from "next/navigation";
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ message: string }>; // <-- Next 15 tambien pide que searchParams sea Promise
+// Definimos las props correctamente para Next.js 15
+export default async function LoginPage(props: {
+  searchParams: Promise<{ message?: string }>;
 }) {
-  
+  // 1. Esperamos a que lleguen los parámetros (await)
+  const searchParams = await props.searchParams;
+  const message = searchParams?.message;
+
+  // Lógica de Iniciar Sesión (Backend)
   const signIn = async (formData: FormData) => {
     "use server";
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    // AQUI EL CAMBIO: agregamos await
-    const supabase = await createClient(); 
+    // 2. Esperamos al cliente de supabase (await)
+    const supabase = await createClient();
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -27,12 +30,13 @@ export default function LoginPage({
     return redirect("/");
   };
 
+  // Lógica de Registro (Backend)
   const signUp = async (formData: FormData) => {
     "use server";
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    // AQUI EL CAMBIO: agregamos await
+    // 2. Esperamos al cliente de supabase (await)
     const supabase = await createClient();
 
     const { error } = await supabase.auth.signUp({
@@ -47,6 +51,7 @@ export default function LoginPage({
     return redirect("/login?message=Revisa tu email para confirmar");
   };
 
+  // Diseño (Frontend)
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md space-y-8 bg-white p-10 shadow rounded-xl">
@@ -54,8 +59,14 @@ export default function LoginPage({
           Bienvenido
         </h2>
         
+        {/* Mostramos el mensaje si existe */}
+        {message && (
+          <div className="p-4 bg-red-100 text-red-700 rounded text-center">
+            {message}
+          </div>
+        )}
+
         <form className="mt-8 space-y-6">
-           {/* El formulario queda igual que antes */}
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
               <input
