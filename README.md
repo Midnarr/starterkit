@@ -1,57 +1,61 @@
 # 🚀 MVP SaaS Starter Kit
 
-> **Lanza tu startup en días, no en meses.**
-> Este kit contiene todo lo necesario para construir una aplicación SaaS moderna, segura y escalable. Ahorra +40 horas de configuración aburrida.
+> **Launch your startup in days, not months.**
+> The ultimate boilerplate to build modern, secure, and scalable SaaS applications. Save +40 hours of boring setup.
 
-## ⚡ Características Principales
+## ⚡ Key Features
 
-Este boilerplate no es solo código, es una arquitectura de negocio lista para usar:
+This isn't just code; it's a business architecture ready to deploy:
 
-- **⚛️ Next.js 15 (App Router):** La última versión del framework de React más potente.
-- **🛡️ Autenticación Completa:** Login, Registro y Manejo de Sesiones con **Supabase Auth**.
-- **💳 Pagos Integrados:** Pasarela de pago configurada con **Stripe Checkout**.
-- **🔒 Base de Datos Segura:** PostgreSQL con **Supabase** y políticas de seguridad RLS (Row Level Security).
-- **🎨 UI Moderna:** Estilizado con **Tailwind CSS** y diseño responsivo.
-- **👮 Middleware:** Protección de rutas privadas (`/dashboard`) automática.
-- **☁️ Listo para Producción:** Configuración optimizada para desplegar en **Vercel**.
+- **⚛️ Next.js 15 (App Router):** The latest and most powerful React framework version.
+- **🛡️ Complete Auth:** Login, Sign Up, and Session Management powered by **Supabase Auth**.
+- **💳 Integrated Payments:** Pre-configured payment gateway with **Stripe Checkout**.
+- **🔒 Secure Database:** PostgreSQL with **Supabase** and robust RLS (Row Level Security) policies.
+- **🎨 Modern UI:** Styled with **Tailwind CSS** and fully responsive components.
+- **👮 Middleware:** Automatic protection for private routes (`/dashboard`).
+- **☁️ Production Ready:** Optimized configuration for seamless deployment on **Vercel**.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Tech Stack
 
 * **Frontend:** Next.js 15, React, Tailwind CSS, TypeScript.
 * **Backend / DB:** Supabase (Auth & Postgres).
-* **Pagos:** Stripe.
+* **Payments:** Stripe.
 * **Deploy:** Vercel.
 
 ---
 
-## 🚀 Guía de Inicio Rápido
+## 🚀 Quick Start Guide
 
-Sigue estos pasos para tener tu aplicación corriendo en local en menos de 5 minutos.
+Follow these steps to get your app running locally in under 5 minutes.
 
-### 1. Clonar el repositorio
-```bash
-git clone [https://github.com/TU_USUARIO/mvp-launcher-kit.git](https://github.com/TU_USUARIO/mvp-launcher-kit.git)
+### 1. Clone the repository
+```
+git clone [https://github.com/YOUR_USERNAME/mvp-launcher-kit.git](https://github.com/YOUR_USERNAME/mvp-launcher-kit.git)
 cd mvp-launcher-kit
+```
 
-2. Instalar dependencias
+2. Install dependencies
+```
 npm install
+```
 
-3. Configurar Variables de Entorno
-Renombra el archivo .env.example a .env.local y agrega tus claves:
-
-NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
+4. Configure Environment Variables
+Rename the .env.example file to .env.local and add your keys:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
 
 
-4. Configurar la Base de Datos (Supabase)
-Ve al SQL Editor de tu proyecto en Supabase y ejecuta este script para crear la tabla de demostración:
-
--- Crear tabla de notas
+4. Setup Database (Supabase)
+Go to the SQL Editor in your Supabase dashboard and run this script to create the demo table:
+```
+-- Create notes table
 create table notes (
   id uuid default gen_random_uuid() primary key,
   title text not null,
@@ -59,48 +63,50 @@ create table notes (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Habilitar seguridad (RLS)
+-- Enable Row Level Security (RLS)
 alter table notes enable row level security;
 
--- Política: Ver solo mis notas
-create policy "Ver notas propias" on notes for select using ((select auth.uid()) = user_id);
+-- Policy: Users can only see their own notes
+create policy "View own notes" on notes for select using ((select auth.uid()) = user_id);
 
--- Política: Crear solo mis notas
-create policy "Crear notas propias" on notes for insert with check ((select auth.uid()) = user_id);
+-- Policy: Users can only insert their own notes
+create policy "Insert own notes" on notes for insert with check ((select auth.uid()) = user_id);
+```
+5. Setup Stripe
+  1. Create a product in your Stripe Dashboard and copy the API ID (e.g., price_1Pxyz...).
+  2. Open src/app/api/checkout/route.ts and replace the placeholder ID in the price: "..." line with your real ID.
 
-5. Configurar Stripe
-Crea un producto en Stripe y copia su API ID (ej: price_1Pxyz...).
-
-Ve a src/app/api/checkout/route.ts y reemplaza el ID del precio en la línea price: "...".
-
-6. Correr el servidor
+6. Run the server
+```
 npm run dev
-Visita http://localhost:3000 y ¡listo!
+```
 
-📂 Estructura del Proyecto
-El código está organizado para ser escalable y fácil de entender:
+Open http://localhost:3000 to see your app in action!
 
+📂 Project Structure
+The codebase is organized for scalability and ease of use:
+```
 src/
 ├── app/
-│   ├── (auth)/      # Rutas públicas (Login/Registro)
-│   ├── (dashboard)/ # Rutas protegidas (Panel de Control)
-│   ├── api/         # Webhooks y Endpoints de Stripe
+│   ├── (auth)/      # Public routes (Login/Signup)
+│   ├── (dashboard)/ # Protected routes (User Panel)
+│   ├── api/         # Webhooks & Stripe Endpoints
 │   └── page.tsx     # Landing Page
-├── components/      # Botones, Inputs y UI reutilizable
-├── libs/            # Configuración de Supabase y Stripe
-└── types/           # Definiciones de TypeScript
+├── components/      # Reusable UI components
+├── libs/            # Supabase & Stripe configuration
+└── types/           # TypeScript definitions
+```
 
+🚢 Deployment
+The easiest way to publish your app is with Vercel:
 
-🚢 Despliegue (Deploy)
-La forma más fácil de publicar tu app es con Vercel:
+1. Push your code to GitHub.
+2. Import the project into Vercel.
+3. Add the Environment Variables (same as step 3).
+4. Click Deploy.
+5. Important: Update NEXT_PUBLIC_BASE_URL in Vercel and the Site URL in Supabase Auth with your new production domain.
 
-1. Sube tu código a GitHub.
-2. Importa el proyecto en Vercel.
-3. Agrega las Environment Variables (las mismas del paso 3).
-4. Dale a Deploy.
-5. Importante: Actualiza NEXT_PUBLIC_BASE_URL en Vercel y la Site URL en Supabase Auth con tu nuevo dominio real.
+🤝 Contribution & Support
+If you find a bug or have a feature request, feel free to open an Issue or Pull Request.
 
-🤝 Contribución y Soporte
-Si encuentras un bug o tienes una idea para mejorar el kit, siéntete libre de abrir un Issue o un Pull Request.
-
-Creado con ❤️ por Midnarr
+Created with ❤️ by Midnarr
