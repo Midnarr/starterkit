@@ -44,7 +44,7 @@ export default function LoginPage({
       return redirect("/login?message=Error al registrarse");
     }
 
-    return redirect("/login?message=Revisa tu email para confirmar");
+    return redirect("/login?message=Registrado correctamente. Revisa tu email para confirmar");
   };
 
   return (
