@@ -73,10 +73,12 @@ create policy "View own notes" on notes for select using ((select auth.uid()) = 
 create policy "Insert own notes" on notes for insert with check ((select auth.uid()) = user_id);
 ```
 5. Setup Stripe
-  1-Create a product in your Stripe Dashboard and copy the API ID (e.g., price_1Pxyz...).
-  2-Open src/app/api/checkout/route.ts and replace the placeholder ID in the price: "..." line with your real ID.
 
-6. Run the server
+    .Create a product in your Stripe Dashboard and copy the API ID (e.g., price_1Pxyz...).
+    
+    .Open src/app/api/checkout/route.ts and replace the placeholder ID in the price: "..." line with your real ID.
+
+7. Run the server
 ```
 npm run dev
 ```
