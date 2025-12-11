@@ -3,23 +3,25 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import CheckoutButton from "@/components/CheckoutButton";
 
-// 1. Recibimos los props para leer la URL (Next.js 15)
 export default async function DashboardPage(props: {
   searchParams: Promise<{ payment?: string }>;
 }) {
-  // 2. Esperamos los parámetros
+  // 1. LEER PARAMETROS (Lógica Nueva para Next.js 15)
   const searchParams = await props.searchParams;
   const showSuccessMessage = searchParams.payment === "success";
 
+  // 2. VERIFICAR USUARIO
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // 3. OBTENER NOTAS
   const { data: notes } = await supabase
     .from("notes")
     .select("*")
     .order("created_at", { ascending: false });
 
+  // 4. ACCIÓN: AGREGAR NOTA
   const addNote = async (formData: FormData) => {
     "use server";
     const title = formData.get("title") as string;
@@ -29,6 +31,7 @@ export default async function DashboardPage(props: {
     revalidatePath("/dashboard");
   };
 
+  // 5. ACCIÓN: CERRAR SESIÓN
   const signOut = async () => {
     "use server";
     const supabase = await createClient();
@@ -49,15 +52,13 @@ export default async function DashboardPage(props: {
           </form>
         </div>
 
-        {/* --- LÓGICA CONDICIONAL DE PAGO --- */}
+        {/* --- LÓGICA VISUAL DE PAGO (NUEVO) --- */}
         {showSuccessMessage ? (
-          // Si el pago fue exitoso, mostramos esto:
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">¡Pago Exitoso! </strong>
-            <span className="block sm:inline">Gracias por suscribirte al Plan Pro.</span>
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-fade-in-down" role="alert">
+            <strong className="font-bold">¡Pago Recibido! 🎉 </strong>
+            <span className="block sm:inline">Ya eres miembro Premium. Gracias por tu apoyo.</span>
           </div>
         ) : (
-          // Si no ha pagado (o no viene de stripe), mostramos el banner de venta:
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
               <h2 className="text-2xl font-bold">Plan Premium 🚀</h2>
@@ -105,7 +106,6 @@ export default async function DashboardPage(props: {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
