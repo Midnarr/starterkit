@@ -99,6 +99,7 @@ src/
 ```
 
 🚢 Deployment
+
 The easiest way to publish your app is with Vercel:
 
 1. Push your code to GitHub.
