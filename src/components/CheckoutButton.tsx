@@ -32,7 +32,7 @@ export default function CheckoutButton() {
       disabled={loading}
       className="bg-white text-indigo-600 font-bold py-2 px-6 rounded-full shadow hover:bg-gray-100 transition disabled:opacity-50"
     >
-      {loading ? "Cargando..." : "Suscribirse Ahora"}
+      {loading ? "Loading..." : "Subscribe now"}
     </button>
   );
 }

@@ -20,7 +20,7 @@ export default function LoginPage({
     });
 
     if (error) {
-      return redirect("/login?message=No pudimos iniciar sesión");
+      return redirect("/login?message=We couldn't log in");
     }
 
     return redirect("/");
@@ -39,10 +39,10 @@ export default function LoginPage({
     });
 
     if (error) {
-      return redirect("/login?message=Error al registrarse");
+      return redirect("/login?message=Error when registering");
     }
 
-    return redirect("/login?message=Registrado correctamente. Revisa tu email para confirmar");
+    return redirect("/login?message=Successfully registered. Check your email to confirm");
   };
 
   return (
@@ -70,7 +70,7 @@ export default function LoginPage({
                 type="password"
                 required
                 className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
-                placeholder="Contraseña"
+                placeholder="Password"
               />
             </div>
           </div>
