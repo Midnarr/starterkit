@@ -2,14 +2,14 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export async function middleware(request: NextRequest) {
-  // 1. Creamos una respuesta inicial
+  // 1. Create an initial response
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  // 2. Conectamos con Supabase para verificar la sesión
+  // 2. Connect to Supabase to verify the session
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // Actualizamos las cookies en la respuesta
+          // Update cookies in the response
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set(name, value)
           );
@@ -34,36 +34,36 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // 3. Obtenemos al usuario
+  // 3. Get the user
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 4. Lógica de Protección de Rutas
-  // Si NO hay usuario y trata de entrar al dashboard...
+  // 4. Route Protection Logic
+  // If NO user and tries to access dashboard...
   if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
-    // ...lo mandamos al login
+    // ...redirect to login
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Si YA hay usuario y trata de entrar al login...
+  // If user EXISTS and tries to access login...
   if (user && request.nextUrl.pathname.startsWith("/login")) {
-    // ...lo mandamos al dashboard (para que no se loguee dos veces)
+    // ...redirect to dashboard (prevent double login)
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
 }
 
-// Configuración: En qué rutas se ejecuta este guardia
+// Configuration: Where this guard runs
 export const config = {
   matcher: [
     /*
-     * Coincide con todas las rutas excepto:
-     * - _next/static (archivos estáticos)
-     * - _next/image (optimización de imágenes)
-     * - favicon.ico (icono)
-     * - imágenes (svg, png, jpg, etc)
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images (svg, png, jpg, etc)
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

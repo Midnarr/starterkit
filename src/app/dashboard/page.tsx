@@ -6,22 +6,22 @@ import CheckoutButton from "@/components/CheckoutButton";
 export default async function DashboardPage(props: {
   searchParams: Promise<{ payment?: string }>;
 }) {
-  // 1. LEER PARAMETROS (Lógica Nueva para Next.js 15)
+  // 1. READ PARAMS
   const searchParams = await props.searchParams;
   const showSuccessMessage = searchParams.payment === "success";
 
-  // 2. VERIFICAR USUARIO
+  // 2. VERIFY USER
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // 3. OBTENER NOTAS
+  // 3. FETCH NOTES
   const { data: notes } = await supabase
     .from("notes")
     .select("*")
     .order("created_at", { ascending: false });
 
-  // 4. ACCIÓN: AGREGAR NOTA
+  // 4. ACTION: ADD NOTE
   const addNote = async (formData: FormData) => {
     "use server";
     const title = formData.get("title") as string;
@@ -31,7 +31,7 @@ export default async function DashboardPage(props: {
     revalidatePath("/dashboard");
   };
 
-  // 5. ACCIÓN: CERRAR SESIÓN
+  // 5. ACTION: SIGN OUT
   const signOut = async () => {
     "use server";
     const supabase = await createClient();
@@ -44,26 +44,26 @@ export default async function DashboardPage(props: {
       <div className="max-w-2xl mx-auto space-y-8">
         
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-800">Panel de Control</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
           <form action={signOut}>
             <button className="text-sm text-red-600 hover:underline">
-              Cerrar Sesión
+              Sign Out
             </button>
           </form>
         </div>
 
-        {/* --- LÓGICA VISUAL DE PAGO (NUEVO) --- */}
+        {/* --- PAYMENT UI LOGIC --- */}
         {showSuccessMessage ? (
           <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-fade-in-down" role="alert">
-            <strong className="font-bold">¡Pago Recibido! 🎉 </strong>
-            <span className="block sm:inline">Ya eres miembro Premium. Gracias por tu apoyo.</span>
+            <strong className="font-bold">Payment Received! 🎉 </strong>
+            <span className="block sm:inline">You are now a Premium member. Thanks for your support.</span>
           </div>
         ) : (
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Plan Premium 🚀</h2>
+              <h2 className="text-2xl font-bold">Premium Plan 🚀</h2>
               <p className="text-indigo-100 mt-1">
-                Desbloquea funciones ilimitadas por solo <span className="font-bold">$10/mes</span>.
+                Unlock unlimited features for just <span className="font-bold">$10/month</span>.
               </p>
             </div>
             <CheckoutButton />
@@ -72,19 +72,19 @@ export default async function DashboardPage(props: {
         {/* ---------------------------------- */}
 
         <div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Mis Notas</h3>
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">My Notes</h3>
           
           <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
             <form action={addNote} className="flex gap-4">
               <input
                 name="title"
                 type="text"
-                placeholder="Escribe una nueva idea..."
+                placeholder="Write a new idea..."
                 className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border"
                 required
               />
               <button className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition">
-                Agregar
+                Add
               </button>
             </form>
           </div>
@@ -92,7 +92,7 @@ export default async function DashboardPage(props: {
           <div className="space-y-3">
             {notes?.length === 0 ? (
               <p className="text-center text-gray-500 py-8 border-2 border-dashed rounded-lg">
-                No tienes notas aún. ¡Crea la primera!
+                You don't have any notes yet. Create the first one!
               </p>
             ) : (
               notes?.map((note) => (

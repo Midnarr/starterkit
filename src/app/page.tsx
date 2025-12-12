@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message: string }>; // <-- Next 15 tambien pide que searchParams sea Promise
+  searchParams: Promise<{ message: string }>;
 }) {
   
   const signIn = async (formData: FormData) => {
@@ -12,7 +12,6 @@ export default function LoginPage({
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    // AQUI EL CAMBIO: agregamos await
     const supabase = await createClient(); 
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -32,7 +31,6 @@ export default function LoginPage({
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     
-    // AQUI EL CAMBIO: agregamos await
     const supabase = await createClient();
 
     const { error } = await supabase.auth.signUp({
@@ -55,7 +53,7 @@ export default function LoginPage({
         </h2>
         
         <form className="mt-8 space-y-6">
-           {/* El formulario queda igual que antes */}
+           {/* */}
           <div className="-space-y-px rounded-md shadow-sm">
             <div>
               <input

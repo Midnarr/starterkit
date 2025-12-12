@@ -1,4 +1,4 @@
-"use client"; // Esto es obligatorio porque usamos useState y onClick
+"use client";
 
 import { useState } from "react";
 
@@ -8,14 +8,12 @@ export default function CheckoutButton() {
   const handleCheckout = async () => {
     setLoading(true);
     try {
-      // Llamamos a nuestra API que habla con Stripe
       const response = await fetch("/api/checkout", {
         method: "POST",
       });
       const data = await response.json();
       
       if (data.url) {
-        // Si todo sale bien, Stripe nos da una URL para redirigir al usuario
         window.location.href = data.url; 
       } else {
         alert("Error al iniciar el pago");

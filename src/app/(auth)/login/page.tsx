@@ -7,7 +7,7 @@ export default async function LoginPage(props: {
   const searchParams = await props.searchParams;
   const message = searchParams?.message;
 
-  // Lógica de Iniciar Sesión (Backend)
+  // Login Logic
   const signIn = async (formData: FormData) => {
     "use server";
     const email = formData.get("email") as string;
@@ -21,14 +21,13 @@ export default async function LoginPage(props: {
     });
 
     if (error) {
-      return redirect("/login?message=No pudimos iniciar sesión");
+      return redirect("/login?message=Could not sign in");
     }
 
-    // <--- CAMBIO AQUÍ: Antes era "/" ahora es "/dashboard"
     return redirect("/dashboard"); 
   };
 
-  // Lógica de Registro (Backend)
+  // Sign Up Logic
   const signUp = async (formData: FormData) => {
     "use server";
     const email = formData.get("email") as string;
@@ -40,23 +39,22 @@ export default async function LoginPage(props: {
       email,
       password,
       options: {
-        // Esto es importante para que al confirmar el email vayan al dashboard
         emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`, 
       },
     });
 
     if (error) {
-      return redirect("/login?message=Error al registrarse");
+      return redirect("/login?message=Error signing up");
     }
 
-    return redirect("/login?message=Revisa tu email para confirmar");
+    return redirect("/login?message=Check your email to confirm");
   };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md space-y-8 bg-white p-10 shadow rounded-xl">
         <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
-          Bienvenido
+          Welcome
         </h2>
         
         {message && (
@@ -82,7 +80,7 @@ export default async function LoginPage(props: {
                 type="password"
                 required
                 className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
-                placeholder="Contraseña"
+                placeholder="Password"
               />
             </div>
           </div>
@@ -92,13 +90,13 @@ export default async function LoginPage(props: {
               formAction={signIn}
               className="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Entrar
+              Sign In
             </button>
             <button
               formAction={signUp}
               className="group relative flex w-full justify-center rounded-md bg-white border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              Registrarse
+              Sign Up
             </button>
           </div>
         </form>
