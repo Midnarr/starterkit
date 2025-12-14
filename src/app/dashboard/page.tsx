@@ -1,109 +1,218 @@
 import { createClient } from "@/libs/supabase/server";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import CheckoutButton from "@/components/CheckoutButton";
+import CreateExpenseForm from "@/components/CreateExpenseForm";
+import ExpenseStatusButtons from "@/components/ExpenseStatusButtons";
 
-export default async function DashboardPage(props: {
-  searchParams: Promise<{ payment?: string }>;
-}) {
-  // 1. READ PARAMS
-  const searchParams = await props.searchParams;
-  const showSuccessMessage = searchParams.payment === "success";
-
-  // 2. VERIFY USER
+export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
-  // 3. FETCH NOTES
-  const { data: notes } = await supabase
-    .from("notes")
-    .select("*")
-    .order("created_at", { ascending: false });
+  // 1. Obtener PERFILES (Para traducir email -> username)
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("email, username");
 
-  // 4. ACTION: ADD NOTE
-  const addNote = async (formData: FormData) => {
-    "use server";
-    const title = formData.get("title") as string;
-    if (!title) return;
-    const supabase = await createClient();
-    await supabase.from("notes").insert({ title });
-    revalidatePath("/dashboard");
+  const userMap: Record<string, string> = {};
+  profiles?.forEach((p) => {
+    if (p.email) userMap[p.email] = p.username || p.email;
+  });
+
+  const getDisplayName = (email: string) => {
+    if (email === user.email) return "Tú";
+    const name = userMap[email];
+    return name ? `@${name}` : email;
   };
 
-  // 5. ACTION: SIGN OUT
-  const signOut = async () => {
-    "use server";
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    redirect("/login");
+  // 2. DEUDAS (Me cobran a mí)
+  const { data: debts } = await supabase
+    .from("expenses")
+    .select("*, groups(name)") 
+    .eq("debtor_email", user.email)
+    .order("created_at", { ascending: false });
+
+  // 3. COBROS (Yo cobro a otros)
+  const { data: receivables } = await supabase
+    .from("expenses")
+    .select("*, groups(name)")
+    .eq("payer_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      day: '2-digit', month: 'short'
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
         
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <form action={signOut}>
-            <button className="text-sm text-red-600 hover:underline">
-              Sign Out
-            </button>
-          </form>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-800">
+          Hola, <span className="text-indigo-600">{userMap[user.email!] || "Usuario"}</span> 👋
+        </h1>
 
-        {/* --- PAYMENT UI LOGIC --- */}
-        {showSuccessMessage ? (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-fade-in-down" role="alert">
-            <strong className="font-bold">Payment Received! 🎉 </strong>
-            <span className="block sm:inline">You are now a Premium member. Thanks for your support.</span>
-          </div>
-        ) : (
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-              <h2 className="text-2xl font-bold">Premium Plan 🚀</h2>
-              <p className="text-indigo-100 mt-1">
-                Unlock unlimited features for just <span className="font-bold">$10/month</span>.
-              </p>
-            </div>
-            <CheckoutButton />
-          </div>
-        )}
-        {/* ---------------------------------- */}
-
-        <div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">My Notes</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
-          <div className="bg-white p-4 rounded-xl shadow-sm border mb-6">
-            <form action={addNote} className="flex gap-4">
-              <input
-                name="title"
-                type="text"
-                placeholder="Write a new idea..."
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border"
-                required
-              />
-              <button className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition">
-                Add
-              </button>
-            </form>
+          {/* COLUMNA IZQUIERDA: CREAR GASTO */}
+          <div className="md:col-span-1">
+            <CreateExpenseForm />
           </div>
 
-          <div className="space-y-3">
-            {notes?.length === 0 ? (
-              <p className="text-center text-gray-500 py-8 border-2 border-dashed rounded-lg">
-                You don't have any notes yet. Create the first one!
-              </p>
-            ) : (
-              notes?.map((note) => (
-                <div key={note.id} className="bg-white p-4 rounded-lg shadow-sm border flex justify-between items-center hover:shadow-md transition">
-                  <span className="text-gray-800 font-medium">{note.title}</span>
-                  <span className="text-xs text-gray-400">
-                    {new Date(note.created_at).toLocaleDateString()}
+          {/* COLUMNA DERECHA: LISTAS */}
+          <div className="md:col-span-2 space-y-8">
+            
+            {/* --- SECCIÓN 1: TE ESTÁN COBRANDO (DEUDAS) --- */}
+            <div className="bg-white p-6 rounded-xl shadow border border-orange-100 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-orange-400"></div>
+              <h2 className="font-bold text-xl mb-4 text-orange-700 flex items-center gap-2">
+                🔔 Tienes que pagar
+                {debts?.filter(d => d.status === 'pending').length! > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
+                    {debts?.filter(d => d.status === 'pending').length} nuevos
                   </span>
+                )}
+              </h2>
+
+              {debts?.length === 0 ? (
+                <p className="text-gray-400 text-sm italic">Estás al día. ¡Genial!</p>
+              ) : (
+                <div className="space-y-4">
+                  {debts?.map((expense) => (
+                    <div key={expense.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            {/* ETIQUETA DE GRUPO */}
+                            {/* @ts-ignore */}
+                            {expense.groups && (
+                              <span className="bg-purple-100 text-purple-700 border border-purple-200 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                                👥 {/* @ts-ignore */} {expense.groups.name}
+                              </span>
+                            )}
+                            <p className="font-semibold text-gray-800">{expense.description}</p>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-2 text-sm mt-1 items-center">
+                            {expense.original_amount && expense.original_amount !== expense.amount ? (
+                              <>
+                                <span className="text-gray-400 line-through text-xs">
+                                  Total: ${expense.original_amount}
+                                </span>
+                                <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">
+                                  Tu parte: ${expense.amount}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-bold text-gray-700">
+                                A pagar: ${expense.amount}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* ENLACE AL RECIBO (DEUDOR) */}
+                          {expense.receipt_url && (
+                            <a 
+                              href={expense.receipt_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-2"
+                            >
+                              📎 Ver recibo
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <ExpenseStatusButtons 
+                          expenseId={expense.id} 
+                          currentStatus={expense.status!} 
+                          isDebtor={true} 
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))
-            )}
+              )}
+            </div>
+
+            {/* --- SECCIÓN 2: TUS COBROS (LO QUE TE DEBEN) --- */}
+            <div className="bg-white p-6 rounded-xl shadow border border-gray-200">
+              <h2 className="font-bold text-xl mb-4 text-gray-700 flex items-center gap-2">
+                💰 Te deben a ti
+              </h2>
+
+              {receivables?.length === 0 ? (
+                <p className="text-gray-400 text-sm italic">No has creado cobros pendientes.</p>
+              ) : (
+                <div className="space-y-4">
+                  {receivables?.map((expense) => (
+                    <div key={expense.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            {/* ETIQUETA DE GRUPO */}
+                            {/* @ts-ignore */}
+                            {expense.groups && (
+                              <span className="bg-purple-100 text-purple-700 border border-purple-200 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+                                👥 {/* @ts-ignore */} {expense.groups.name}
+                              </span>
+                            )}
+                            <p className="font-medium text-gray-800">{expense.description}</p>
+                          </div>
+
+                          <p className="text-sm text-gray-500 mb-1">
+                            A: <strong className="text-indigo-600">{getDisplayName(expense.debtor_email)}</strong>
+                          </p>
+                          
+                           <div className="flex flex-wrap gap-2 text-sm items-center">
+                            {expense.original_amount && expense.original_amount !== expense.amount ? (
+                              <>
+                                <span className="text-gray-400 line-through text-xs">
+                                  Total: ${expense.original_amount}
+                                </span>
+                                <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                  Te debe: ${expense.amount}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-bold text-gray-700">
+                                Monto: ${expense.amount}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* ENLACE AL RECIBO (ACREEDOR) - CORREGIDO */}
+                          {expense.receipt_url && (
+                            <a 
+                              href={expense.receipt_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-2"
+                            >
+                              📎 Ver recibo
+                            </a>
+                          )}
+
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2">
+                           <ExpenseStatusButtons 
+                              expenseId={expense.id} 
+                              currentStatus={expense.status!} 
+                              isDebtor={false} 
+                            />
+                            <span className="text-[10px] text-gray-400">{formatDate(expense.created_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
